@@ -15,7 +15,6 @@ class AttackSimulatorApp:
         
         self.logger = setup_logger(LOG_DIR, LOG_NAME)
         
-        # Attack Type
         self.attack_type_label = tk.Label(root, text="Select Attack Type:")
         self.attack_type_label.pack()
         
@@ -25,41 +24,39 @@ class AttackSimulatorApp:
         self.attack_type_combobox.current(0)
         self.attack_type_combobox.pack()
 
-        # Target IP or URL
         self.target_label = tk.Label(root, text="Target IP or URL:")
         self.target_label.pack()
         
         self.target_entry = tk.Entry(root)
         self.target_entry.pack()
 
-        # Intensity
         self.intensity_label = tk.Label(root, text="Intensity (requests per second):")
         self.intensity_label.pack()
         
         self.intensity_scale = tk.Scale(root, from_=1, to=1000, orient='horizontal')
         self.intensity_scale.pack()
 
-        # Start Button
         self.start_button = tk.Button(root, text="Start Attack", command=self.start_attack)
         self.start_button.pack()
 
-        # Stop Button
         self.stop_button = tk.Button(root, text="Stop Attack", command=self.stop_attack, state=tk.DISABLED)
         self.stop_button.pack()
 
-        # Status Label
         self.status_label = tk.Label(root, text="Status: Idle")
         self.status_label.pack()
 
-        # Remembering last entered IP
+        self.packet_count_label = tk.Label(root, text="Packets Sent: 0")
+        self.packet_count_label.pack()
+
         self.last_target_ip = self.load_last_target_ip()
         self.target_entry.insert(0, self.last_target_ip)
 
         self.simulator = None
         self.attack_threads = []
 
-        # Установить функцию, которая будет вызываться при закрытии окна
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+        self.update_packet_count()
 
     def start_attack(self):
         attack_type = self.attack_type.get()
@@ -77,14 +74,14 @@ class AttackSimulatorApp:
         self.simulator = NetworkAttackSimulator(target, self.logger)
 
         if attack_type == 'SYN Flood':
-            thread = self.simulator.perform_syn_flood(intensity)
+            threads = self.simulator.perform_syn_flood(intensity)
         elif attack_type == 'ICMP Flood':
-            thread = self.simulator.perform_icmp_flood(intensity)
+            threads = self.simulator.perform_icmp_flood(intensity)
         elif attack_type == 'HTTP Flood':
-            thread = self.simulator.perform_http_flood(intensity)
+            threads = self.simulator.perform_http_flood(intensity)
 
-        if thread:
-            self.attack_threads.append(thread)
+        if threads:
+            self.attack_threads.extend(threads)
             self.status_label.config(text="Status: Attacking")
             self.start_button.config(state=tk.DISABLED)
             self.stop_button.config(state=tk.NORMAL)
@@ -93,6 +90,7 @@ class AttackSimulatorApp:
         if self.simulator:
             self.simulator.stop_attack()
             self.status_label.config(text="Status: Idle")
+            self.packet_count_label.config(text="Packets Sent: 0")
             self.attack_threads = []
             self.start_button.config(state=tk.NORMAL)
             self.stop_button.config(state=tk.DISABLED)
@@ -108,8 +106,12 @@ class AttackSimulatorApp:
         with open(CONFIG_FILE, 'w') as f:
             f.write(ip)
 
+    def update_packet_count(self):
+        if self.simulator and self.simulator.attacking:
+            self.packet_count_label.config(text=f"Packets Sent: {self.simulator.packet_count}")
+        self.root.after(1000, self.update_packet_count)
+
     def on_closing(self):
-        # Очистить логи при закрытии приложения
         log_file = os.path.join(LOG_DIR, LOG_NAME)
         if os.path.exists(log_file):
             with open(log_file, 'w') as f:
