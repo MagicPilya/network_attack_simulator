@@ -73,15 +73,15 @@ class AttackSimulatorApp:
 
         self.simulator = NetworkAttackSimulator(target, self.logger)
 
+        threads = None  # Initialize threads variable
         if attack_type == 'SYN Flood':
             threads = self.simulator.perform_syn_flood(intensity)
         elif attack_type == 'ICMP Flood':
             threads = self.simulator.perform_icmp_flood(intensity)
         elif attack_type == 'HTTP Flood':
-            threads = self.simulator.perform_http_flood(intensity)
+            self.simulator.perform_http_flood_async(intensity)
 
-        if threads:
-            self.attack_threads.extend(threads)
+        if threads or attack_type == 'HTTP Flood':
             self.status_label.config(text="Status: Attacking")
             self.start_button.config(state=tk.DISABLED)
             self.stop_button.config(state=tk.NORMAL)
