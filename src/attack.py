@@ -74,7 +74,7 @@ class NetworkAttackSimulator:
 
     def send_icmp_packets(self):
         while self.attacking and not self.stop_event.is_set():
-            send(IP(dst=self.target_ip) / ICMP(dport=8080), verbose=False)
+            send(IP(dst=self.target_ip) / ICMP(), verbose=False)
             time.sleep(1.0 / self.intensity)
 
     def send_http_requests(self, url):

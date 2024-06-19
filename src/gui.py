@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from attack import NetworkAttackSimulator
 from logger import setup_logger
+import os
 
 LOG_DIR = 'logs/'
 LOG_NAME = 'network_attack.log'
@@ -57,6 +58,9 @@ class AttackSimulatorApp:
         self.simulator = None
         self.attack_threads = []
 
+        # Установить функцию, которая будет вызываться при закрытии окна
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
     def start_attack(self):
         attack_type = self.attack_type.get()
         target = self.target_entry.get()
@@ -103,6 +107,14 @@ class AttackSimulatorApp:
     def save_last_target_ip(self, ip):
         with open(CONFIG_FILE, 'w') as f:
             f.write(ip)
+
+    def on_closing(self):
+        # Очистить логи при закрытии приложения
+        log_file = os.path.join(LOG_DIR, LOG_NAME)
+        if os.path.exists(log_file):
+            with open(log_file, 'w') as f:
+                f.truncate(0)
+        self.root.destroy()
 
 def main():
     root = tk.Tk()
