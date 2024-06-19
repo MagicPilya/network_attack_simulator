@@ -43,7 +43,7 @@ class AttackSimulatorApp:
         self.start_button.pack()
 
         # Stop Button
-        self.stop_button = tk.Button(root, text="Stop Attack", command=self.stop_attack)
+        self.stop_button = tk.Button(root, text="Stop Attack", command=self.stop_attack, state=tk.DISABLED)
         self.stop_button.pack()
 
         # Status Label
